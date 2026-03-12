@@ -1,6 +1,6 @@
-# Scary Maze 2
+# Scary Maze 2 | https://maze2.xyz/
 
-A short first-person maze game with a tense atmosphere. Navigate the corridors, avoid the rats, and survive. Built with **raycasting** (Wolfenstein 3D–style) in **TypeScript** and **Vite**.
+A short first-person maze game with a tense atmosphere. Navigate the corridors, avoid the rats, and survive. Built with **raycasting** in **TypeScript** and **Vite**.
 
 ![In-game screenshot: dark brick maze, HUD controls, minimap](screenshot.png)
 

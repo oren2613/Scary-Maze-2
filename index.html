@@ -73,35 +73,9 @@
     #video-sound-hint.hidden {
       display: none;
     }
-    /* Bouton Avancer — visible uniquement sur tactile */
+    /* Bouton Avancer mobile : masqué, tout l'écran = avancer */
     #mobile-forward {
-      display: none;
-      position: fixed;
-      right: 24px;
-      bottom: 80px;
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.25);
-      border: 2px solid rgba(255,255,255,0.5);
-      color: #fff;
-      font-size: 14px;
-      font-weight: bold;
-      z-index: 10;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    #mobile-forward:active {
-      background: rgba(255,255,255,0.45);
-    }
-    @media (pointer: coarse) {
-      #mobile-forward { display: flex; align-items: center; justify-content: center; }
-    }
-    body.touch-device #mobile-forward {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: none !important;
     }
     body.touch-device #hud {
       display: none;
@@ -109,21 +83,10 @@
     body.touch-device #video-sound-hint {
       display: none;
     }
-    #test-text {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      color: rgba(255,255,255,0.9);
-      font-size: 24px;
-      pointer-events: none;
-      z-index: 5;
-    }
   </style>
 </head>
 <body>
   <canvas id="game"></canvas>
-  <div id="test-text">test</div>
   <div id="crosshair"></div>
   <div id="hud">ZQSD ou clic maintenu — Avancer · Souris — Regarder</div>
   <button type="button" id="mobile-forward" aria-label="Avancer">Avancer</button>

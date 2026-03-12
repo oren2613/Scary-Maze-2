@@ -76,12 +76,12 @@ let mouseSensitivity = 0.0032;
 let pointerLocked = false;
 let mouseMoveForward = false; // clic gauche maintenu = avancer
 
-// Contrôles tactiles (mobile)
+// Contrôles tactiles (mobile) — tout l'écran = avancer, glisser = tourner
 let touchMoveForward = false;
-let forwardTouchId: number | null = null;
+const forwardTouchIds = new Set<number>();
 let touchLookId: number | null = null;
 let lastTouchX = 0;
-const TOUCH_LOOK_SENSITIVITY = 0.004;
+const TOUCH_LOOK_SENSITIVITY = 0.018;
 
 canvas.addEventListener('click', () => {
   if (typeof canvas.requestPointerLock === 'function') {
@@ -98,15 +98,8 @@ document.addEventListener('keydown', (e) => onKey(e, true));
 document.addEventListener('keyup', (e) => onKey(e, false));
 
 // ——— Touch (mobile) ———
-const mobileForwardBtn = document.getElementById('mobile-forward');
-const FORWARD_ZONE_RATIO = 0.35; // droite 35% de l'écran = zone "avancer"
-
-function isForwardZone(clientX: number): boolean {
-  return clientX >= window.innerWidth * (1 - FORWARD_ZONE_RATIO);
-}
-
 function getTouchLookSensitivity(): number {
-  return TOUCH_LOOK_SENSITIVITY * (window.innerWidth / 800);
+  return TOUCH_LOOK_SENSITIVITY * (window.innerWidth / 600);
 }
 
 // ——— Minimap déplaçable ———
@@ -173,13 +166,8 @@ document.addEventListener('touchstart', (e) => {
     startMinimapDrag(t.clientX, t.clientY);
     return;
   }
-  const onButton = mobileForwardBtn && (e.target === mobileForwardBtn || mobileForwardBtn.contains(e.target as Node));
-  const inForwardZone = isForwardZone(t.clientX);
-  if (onButton || inForwardZone) {
-    touchMoveForward = true;
-    forwardTouchId = t.identifier;
-    return;
-  }
+  forwardTouchIds.add(t.identifier);
+  touchMoveForward = true;
   if (touchLookId === null) {
     touchLookId = t.identifier;
     lastTouchX = t.clientX;
@@ -210,17 +198,15 @@ document.addEventListener('touchmove', (e) => {
 document.addEventListener('touchend', (e) => {
   for (const t of e.changedTouches) {
     if (t.identifier === minimapDragTouchId) minimapDragTouchId = null;
-    if (t.identifier === forwardTouchId) {
-      touchMoveForward = false;
-      forwardTouchId = null;
-    }
+    forwardTouchIds.delete(t.identifier);
+    touchMoveForward = forwardTouchIds.size > 0;
     if (t.identifier === touchLookId) touchLookId = null;
   }
 });
 
 document.addEventListener('touchcancel', () => {
   touchLookId = null;
-  forwardTouchId = null;
+  forwardTouchIds.clear();
   touchMoveForward = false;
   minimapDragTouchId = null;
 });
