@@ -2,6 +2,8 @@
 
 A short first-person maze game with a tense atmosphere. Navigate the corridors, avoid the rats, and survive. Built with **raycasting** (Wolfenstein 3D–style) in **TypeScript** and **Vite**.
 
+![In-game screenshot: dark brick maze, HUD controls, minimap](screenshot.png)
+
 ## Run the game
 
 ```bash
@@ -51,8 +53,3 @@ Output is in `dist/`. Use `preview` to test the production build locally.
 | `src/game/minimap.ts` | Styled minimap with FOV cone |
 | `src/game/rats.ts` | Rat spawn and movement |
 
-Assets (textures, sprites) live in `public/`. For the cutscene, add your own `public/video.mp4` if needed (the game will run without it).
-
-## License
-
-Use and modify as you like.
