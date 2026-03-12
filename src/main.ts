@@ -31,7 +31,6 @@ const videoSoundHint = document.getElementById('video-sound-hint') as HTMLDivEle
 videoCutscene.src = '/.mp4';
 videoCutscene.playsInline = true;
 videoCutscene.addEventListener('ended', () => {
-  videoOverlay.classList.remove('visible');
   playingVideo = false;
   videoCutscene.pause();
   videoCutscene.currentTime = 0;
@@ -50,12 +49,15 @@ function unmuteVideo(): void {
   }
 }
 
-videoOverlay.addEventListener('click', unmuteVideo);
-videoOverlay.addEventListener('touchstart', unmuteVideo, { passive: true });
+canvas.addEventListener('click', () => {
+  if (playingVideo) unmuteVideo();
+});
+canvas.addEventListener('touchstart', () => {
+  if (playingVideo) unmuteVideo();
+}, { passive: true });
 
 function playCutscene(): void {
   playingVideo = true;
-  videoOverlay.classList.add('visible');
   videoCutscene.currentTime = 0;
   videoSoundHint.classList.add('hidden');
   videoCutscene.muted = false;
@@ -66,7 +68,6 @@ function playCutscene(): void {
   }).catch((e) => {
     console.error('Lecture vidéo impossible:', e);
     playingVideo = false;
-    videoOverlay.classList.remove('visible');
   });
 }
 
@@ -162,6 +163,11 @@ function moveMinimapBy(clientX: number, clientY: number): void {
 }
 
 document.addEventListener('touchstart', (e) => {
+  if (playingVideo) {
+    unmuteVideo();
+    e.preventDefault();
+    return;
+  }
   const t = e.changedTouches[0];
   if (!t) return;
   e.preventDefault();
@@ -272,6 +278,11 @@ function update(now: number): void {
 
 function gameLoop(now: number = 0): void {
   if (playingVideo) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (videoCutscene.readyState >= 2) {
+      ctx.drawImage(videoCutscene, 0, 0, canvas.width, canvas.height);
+    }
     requestAnimationFrame(gameLoop);
     return;
   }
