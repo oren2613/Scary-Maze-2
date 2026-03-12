@@ -5,7 +5,7 @@ import { Player } from './game/player.js';
 import { isWall, getSpawnPosition } from './game/map.js';
 import { castAllRays, RAY_COUNT } from './game/raycaster.js';
 import { render, loadWallTexture } from './game/renderer.js';
-import { renderMinimap } from './game/minimap.js';
+import { renderMinimap, MINIMAP_SIZE, MINIMAP_MARGIN } from './game/minimap.js';
 import { getRats, spawnRatAt, updateRats } from './game/rats.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -97,18 +97,6 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('keydown', (e) => onKey(e, true));
 document.addEventListener('keyup', (e) => onKey(e, false));
 
-document.addEventListener('mousedown', (e) => {
-  if (e.button === 0) mouseMoveForward = true;
-});
-document.addEventListener('mouseup', (e) => {
-  if (e.button === 0) mouseMoveForward = false;
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (!pointerLocked) return;
-  player.angle += e.movementX * mouseSensitivity;
-});
-
 // ——— Touch (mobile) ———
 const mobileForwardBtn = document.getElementById('mobile-forward');
 const FORWARD_ZONE_RATIO = 0.35; // droite 35% de l'écran = zone "avancer"
@@ -121,10 +109,70 @@ function getTouchLookSensitivity(): number {
   return TOUCH_LOOK_SENSITIVITY * (window.innerWidth / 800);
 }
 
+// ——— Minimap déplaçable ———
+let minimapX: number | null = null;
+let minimapY: number | null = null;
+let minimapDragTouchId: number | null = null;
+let minimapDragMouse = false;
+let lastMinimapDragClientX = 0;
+let lastMinimapDragClientY = 0;
+
+function getMinimapRect(): { x: number; y: number; w: number; h: number } {
+  const w = canvas.width;
+  const h = canvas.height;
+  const x = minimapX ?? w - MINIMAP_SIZE - MINIMAP_MARGIN;
+  const y = minimapY ?? h - MINIMAP_SIZE - MINIMAP_MARGIN;
+  return { x, y, w: MINIMAP_SIZE, h: MINIMAP_SIZE };
+}
+
+function clientToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+  };
+}
+
+function isInsideMinimap(clientX: number, clientY: number): boolean {
+  const { x, y, w, h } = getMinimapRect();
+  const p = clientToCanvas(clientX, clientY);
+  return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
+}
+
+function startMinimapDrag(clientX: number, clientY: number): void {
+  if (minimapX === null || minimapY === null) {
+    minimapX = canvas.width - MINIMAP_SIZE - MINIMAP_MARGIN;
+    minimapY = canvas.height - MINIMAP_SIZE - MINIMAP_MARGIN;
+  }
+  lastMinimapDragClientX = clientX;
+  lastMinimapDragClientY = clientY;
+}
+
+function moveMinimapBy(clientX: number, clientY: number): void {
+  const dx = clientX - lastMinimapDragClientX;
+  const dy = clientY - lastMinimapDragClientY;
+  lastMinimapDragClientX = clientX;
+  lastMinimapDragClientY = clientY;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  minimapX = (minimapX ?? canvas.width - MINIMAP_SIZE - MINIMAP_MARGIN) + dx * scaleX;
+  minimapY = (minimapY ?? canvas.height - MINIMAP_SIZE - MINIMAP_MARGIN) + dy * scaleY;
+  minimapX = Math.max(0, Math.min(canvas.width - MINIMAP_SIZE, minimapX));
+  minimapY = Math.max(0, Math.min(canvas.height - MINIMAP_SIZE, minimapY));
+}
+
 document.addEventListener('touchstart', (e) => {
   const t = e.changedTouches[0];
   if (!t) return;
   e.preventDefault();
+  if (isInsideMinimap(t.clientX, t.clientY)) {
+    minimapDragTouchId = t.identifier;
+    startMinimapDrag(t.clientX, t.clientY);
+    return;
+  }
   const onButton = mobileForwardBtn && (e.target === mobileForwardBtn || mobileForwardBtn.contains(e.target as Node));
   const inForwardZone = isForwardZone(t.clientX);
   if (onButton || inForwardZone) {
@@ -139,6 +187,15 @@ document.addEventListener('touchstart', (e) => {
 }, { passive: false });
 
 document.addEventListener('touchmove', (e) => {
+  if (minimapDragTouchId !== null) {
+    const t = Array.from(e.changedTouches).find((x) => x.identifier === minimapDragTouchId)
+      ?? Array.from(e.touches).find((x) => x.identifier === minimapDragTouchId);
+    if (t) {
+      moveMinimapBy(t.clientX, t.clientY);
+      e.preventDefault();
+    }
+    return;
+  }
   if (touchLookId === null) return;
   const t = Array.from(e.changedTouches).find((x) => x.identifier === touchLookId)
     ?? Array.from(e.touches).find((x) => x.identifier === touchLookId);
@@ -152,6 +209,7 @@ document.addEventListener('touchmove', (e) => {
 
 document.addEventListener('touchend', (e) => {
   for (const t of e.changedTouches) {
+    if (t.identifier === minimapDragTouchId) minimapDragTouchId = null;
     if (t.identifier === forwardTouchId) {
       touchMoveForward = false;
       forwardTouchId = null;
@@ -164,6 +222,30 @@ document.addEventListener('touchcancel', () => {
   touchLookId = null;
   forwardTouchId = null;
   touchMoveForward = false;
+  minimapDragTouchId = null;
+});
+
+document.addEventListener('mousedown', (e) => {
+  if (e.button === 0 && e.target === canvas && isInsideMinimap(e.clientX, e.clientY)) {
+    minimapDragMouse = true;
+    startMinimapDrag(e.clientX, e.clientY);
+    return;
+  }
+  if (e.button === 0) mouseMoveForward = true;
+});
+document.addEventListener('mouseup', (e) => {
+  if (e.button === 0) {
+    minimapDragMouse = false;
+    mouseMoveForward = false;
+  }
+});
+document.addEventListener('mousemove', (e) => {
+  if (minimapDragMouse) {
+    moveMinimapBy(e.clientX, e.clientY);
+    return;
+  }
+  if (!pointerLocked) return;
+  player.angle += e.movementX * mouseSensitivity;
 });
 
 const COLLISION_MARGIN = 0.4;
@@ -206,7 +288,7 @@ function gameLoop(now: number = 0): void {
   update(now);
   const rays = castAllRays(player, RAY_COUNT, 22);
   render(ctx, rays, canvas.width, canvas.height, player.angle, player.x, player.y, getRats());
-  renderMinimap(ctx, player.x, player.y, player.angle, canvas.width, canvas.height);
+  renderMinimap(ctx, player.x, player.y, player.angle, canvas.width, canvas.height, minimapX ?? undefined, minimapY ?? undefined);
   requestAnimationFrame(gameLoop);
 }
 

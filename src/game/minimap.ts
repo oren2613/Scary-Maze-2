@@ -6,8 +6,8 @@ import { FOV } from './player.js';
 import { castRay } from './raycaster.js';
 
 const RADIUS = 8;
-const MINIMAP_SIZE = 180;
-const MARGIN = 16;
+export const MINIMAP_SIZE = 180;
+export const MINIMAP_MARGIN = 16;
 const CORNER_RADIUS = 14;
 
 const WALL_BASE = '#3d2e24';
@@ -30,10 +30,12 @@ export function renderMinimap(
   playerY: number,
   playerAngle: number,
   screenWidth: number,
-  screenHeight: number
+  screenHeight: number,
+  fixedX?: number,
+  fixedY?: number
 ): void {
-  const x0 = screenWidth - MINIMAP_SIZE - MARGIN;
-  const y0 = screenHeight - MINIMAP_SIZE - MARGIN;
+  const x0 = fixedX ?? screenWidth - MINIMAP_SIZE - MINIMAP_MARGIN;
+  const y0 = fixedY ?? screenHeight - MINIMAP_SIZE - MINIMAP_MARGIN;
 
   const originX = Math.floor(playerX) - RADIUS;
   const originY = Math.floor(playerY) - RADIUS;
