@@ -28,7 +28,7 @@ const videoOverlay = document.getElementById('video-overlay') as HTMLDivElement;
 const videoCutscene = document.getElementById('video-cutscene') as HTMLVideoElement;
 const videoSoundHint = document.getElementById('video-sound-hint') as HTMLDivElement;
 
-videoCutscene.src = '/video.mp4';
+videoCutscene.src = '/.mp4';
 videoCutscene.playsInline = true;
 videoCutscene.addEventListener('ended', () => {
   videoOverlay.classList.remove('visible');
@@ -38,7 +38,7 @@ videoCutscene.addEventListener('ended', () => {
   videoSoundHint.classList.add('hidden');
 });
 videoCutscene.addEventListener('error', () => {
-  console.error('Erreur chargement vidéo. Place le fichier .mp4 dans public/video.mp4');
+  console.error('Erreur chargement vidéo. Place le fichier .mp4 dans public/ (en tant que .mp4 ou video.mp4)');
 });
 
 videoOverlay.addEventListener('click', () => {
