@@ -76,8 +76,17 @@ let mouseSensitivity = 0.0032;
 let pointerLocked = false;
 let mouseMoveForward = false; // clic gauche maintenu = avancer
 
+// Contrôles tactiles (mobile)
+let touchMoveForward = false;
+let forwardTouchId: number | null = null;
+let touchLookId: number | null = null;
+let lastTouchX = 0;
+const TOUCH_LOOK_SENSITIVITY = 0.004;
+
 canvas.addEventListener('click', () => {
-  canvas.requestPointerLock();
+  if (typeof document.requestPointerLock === 'function') {
+    canvas.requestPointerLock();
+  }
 });
 
 document.addEventListener('pointerlockchange', () => {
@@ -100,6 +109,57 @@ document.addEventListener('mousemove', (e) => {
   player.angle += e.movementX * mouseSensitivity;
 });
 
+// ——— Touch (mobile) ———
+const mobileForwardBtn = document.getElementById('mobile-forward');
+
+function getTouchLookSensitivity(): number {
+  return TOUCH_LOOK_SENSITIVITY * (window.innerWidth / 800);
+}
+
+document.addEventListener('touchstart', (e) => {
+  const t = e.changedTouches[0];
+  if (!t) return;
+  if (mobileForwardBtn && (e.target === mobileForwardBtn || mobileForwardBtn.contains(e.target as Node))) {
+    touchMoveForward = true;
+    forwardTouchId = t.identifier;
+    e.preventDefault();
+    return;
+  }
+  if (touchLookId === null) {
+    touchLookId = t.identifier;
+    lastTouchX = t.clientX;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+  if (touchLookId === null) return;
+  const t = Array.from(e.changedTouches).find((x) => x.identifier === touchLookId)
+    ?? Array.from(e.touches).find((x) => x.identifier === touchLookId);
+  if (t) {
+    const dx = t.clientX - lastTouchX;
+    player.angle += dx * getTouchLookSensitivity();
+    lastTouchX = t.clientX;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', (e) => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === forwardTouchId) {
+      touchMoveForward = false;
+      forwardTouchId = null;
+    }
+    if (t.identifier === touchLookId) touchLookId = null;
+  }
+});
+
+document.addEventListener('touchcancel', () => {
+  touchLookId = null;
+  forwardTouchId = null;
+  touchMoveForward = false;
+});
+
 const COLLISION_MARGIN = 0.4;
 
 function collision(mapX: number, mapY: number): boolean {
@@ -119,7 +179,7 @@ function update(now: number): void {
   lastFrameTime = now;
 
   const block = (mx: number, my: number) => collision(mx, my);
-  if (keys['z'] || mouseMoveForward) player.moveForward(block, dtSec);
+  if (keys['z'] || mouseMoveForward || touchMoveForward) player.moveForward(block, dtSec);
   if (keys['s']) player.moveBackward(block, dtSec);
   if (keys['q']) player.strafeLeft(block, dtSec);
   if (keys['d']) player.strafeRight(block, dtSec);
