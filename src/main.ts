@@ -84,7 +84,7 @@ let lastTouchX = 0;
 const TOUCH_LOOK_SENSITIVITY = 0.004;
 
 canvas.addEventListener('click', () => {
-  if (typeof document.requestPointerLock === 'function') {
+  if (typeof canvas.requestPointerLock === 'function') {
     canvas.requestPointerLock();
   }
 });
