@@ -41,13 +41,17 @@ videoCutscene.addEventListener('error', () => {
   console.error('Erreur chargement vidéo. Place le fichier .mp4 dans public/ (en tant que .mp4 ou video.mp4)');
 });
 
-videoOverlay.addEventListener('click', () => {
+function unmuteVideo(): void {
   if (!playingVideo) return;
   if (videoCutscene.muted) {
     videoCutscene.muted = false;
     videoSoundHint.classList.add('hidden');
+    videoCutscene.play().catch(() => {}); // certain mobile require play() après unmute
   }
-});
+}
+
+videoOverlay.addEventListener('click', unmuteVideo);
+videoOverlay.addEventListener('touchstart', unmuteVideo, { passive: true });
 
 function playCutscene(): void {
   playingVideo = true;
