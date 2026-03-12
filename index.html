@@ -109,10 +109,21 @@
     body.touch-device #video-sound-hint {
       display: none;
     }
+    #test-text {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.9);
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 5;
+    }
   </style>
 </head>
 <body>
   <canvas id="game"></canvas>
+  <div id="test-text">test</div>
   <div id="crosshair"></div>
   <div id="hud">ZQSD ou clic maintenu — Avancer · Souris — Regarder</div>
   <button type="button" id="mobile-forward" aria-label="Avancer">Avancer</button>
