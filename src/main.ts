@@ -147,5 +147,5 @@ function gameLoop(now: number = 0): void {
 loadWallTexture();
 resize();
 window.addEventListener('resize', resize);
-setTimeout(playCutscene, 80000);
+setTimeout(playCutscene, 40000);
 requestAnimationFrame(gameLoop);
