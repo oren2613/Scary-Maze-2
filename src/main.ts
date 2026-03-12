@@ -111,6 +111,11 @@ document.addEventListener('mousemove', (e) => {
 
 // ——— Touch (mobile) ———
 const mobileForwardBtn = document.getElementById('mobile-forward');
+const FORWARD_ZONE_RATIO = 0.35; // droite 35% de l'écran = zone "avancer"
+
+function isForwardZone(clientX: number): boolean {
+  return clientX >= window.innerWidth * (1 - FORWARD_ZONE_RATIO);
+}
 
 function getTouchLookSensitivity(): number {
   return TOUCH_LOOK_SENSITIVITY * (window.innerWidth / 800);
@@ -119,16 +124,17 @@ function getTouchLookSensitivity(): number {
 document.addEventListener('touchstart', (e) => {
   const t = e.changedTouches[0];
   if (!t) return;
-  if (mobileForwardBtn && (e.target === mobileForwardBtn || mobileForwardBtn.contains(e.target as Node))) {
+  e.preventDefault();
+  const onButton = mobileForwardBtn && (e.target === mobileForwardBtn || mobileForwardBtn.contains(e.target as Node));
+  const inForwardZone = isForwardZone(t.clientX);
+  if (onButton || inForwardZone) {
     touchMoveForward = true;
     forwardTouchId = t.identifier;
-    e.preventDefault();
     return;
   }
   if (touchLookId === null) {
     touchLookId = t.identifier;
     lastTouchX = t.clientX;
-    e.preventDefault();
   }
 }, { passive: false });
 
