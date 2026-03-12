@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vite/
+*.local
+.DS_Store
+
+# Large video — add manually or use Git LFS if you need to version it
+public/video.mp4

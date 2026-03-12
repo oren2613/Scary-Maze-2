@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raycast 3D — Jeu à la première personne</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      overflow: hidden;
+      background: #0a0a0a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      cursor: none;
+    }
+    #game {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #crosshair {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #hud {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      z-index: 10;
+    }
+    #video-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 9999;
+      background: #000;
+      align-items: center;
+      justify-content: center;
+    }
+    #video-overlay.visible {
+      display: flex;
+    }
+    #video-overlay video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    #video-sound-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.85);
+      font-size: 16px;
+      pointer-events: none;
+      text-shadow: 0 1px 3px #000;
+    }
+    #video-sound-hint.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="crosshair"></div>
+  <div id="hud">ZQSD ou clic maintenu — Avancer · Souris — Regarder</div>
+  <div id="video-overlay">
+    <video id="video-cutscene" playsinline></video>
+    <div id="video-sound-hint">Cliquer pour activer le son</div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
